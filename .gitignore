@@ -2,5 +2,5 @@
 *.pyo
 __pycache__
 .idea
-.python_version
+.python-version
 *.ini

@@ -24,5 +24,5 @@ if __name__ == "__main__":
     slackbot.settings.DEFAULT_REPLY = settings.get('bot', 'DEFAULT_REPLY')
     slackbot.settings.PLUGINS = [settings.get('bot', 'PLUGIN_DIR')]
     print(slackbot.settings.PLUGINS)
-    slackbot.settings.DEBUG = True
+    # slackbot.settings.DEBUG = True
     main()
