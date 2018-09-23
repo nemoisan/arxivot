@@ -9,8 +9,12 @@ def listen_arxiv1(message):
     match = ARXIV_URL.search(message.body['text'])
     if match:
         result = arxiv_information(match.group('id'))
+        in_thread = bool(message.body.get('thread_ts'))
         if result:
-            message.send(result)
+            if in_thread:
+                message.reply(result, in_thread=True)
+            else:
+                message.send(result)
 
 
 ARXIV_ID = re.compile(r'\[(?P<id>(?:\d{4}\.\d{4,5})|(?:[a-zA-Z.-]+/\d{7}))\]')
@@ -19,8 +23,12 @@ def listen_arxiv2(message):
     match = ARXIV_ID.search(message.body['text'])
     if match:
         result = arxiv_information(match.group('id'), with_link=True)
+        in_thread = bool(message.body.get('thread_ts'))
         if result:
-            message.send(result)
+            if in_thread:
+                message.reply(result, in_thread=True)
+            else:
+                message.send(result)
 
 
 UNITS = re.compile(r'^(.+) in (.+)$')
@@ -30,7 +38,7 @@ def listen_units(message):
     if match:
         result = natural_units(match.group(1), match.group(2))
         if result:
-            message.reply(result)
+            message.reply(result, in_thread=True)
 
 
 def arxiv_information(arxiv_id, with_link=False):
