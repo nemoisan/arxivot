@@ -71,9 +71,18 @@ def natural_units(convert, to):
     return p
 
 
+@slackbot.bot.respond_to(r'^help$')
+def listen_help(message):
+    message.reply("""
+Available features:
+    help                this help
+    ... in ...          natural-unit conversion (e.g. "100fm in GeV")
+""")
+
+
 @slackbot.bot.default_reply()
 def default_func(message):
     text = message.body['text']     # メッセージを取り出す
     # 送信メッセージを作る。改行やトリプルバッククォートで囲む表現も可能
-    msg = 'あなたの送ったメッセージは\n```' + text + '```'
+    msg = 'You have sent the following message; try sending "help" for instruction.\n```' + text + '```'
     message.reply(msg)      # メンション
