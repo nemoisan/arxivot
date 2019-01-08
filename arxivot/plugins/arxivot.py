@@ -10,13 +10,13 @@ ARXIV_URL = re.compile(r'https?://arxiv\.org/(?:abs|pdf)/(?P<id>(?:\d{4}\.\d{4,5
 def listen_arxiv1(message):
     match = ARXIV_URL.search(message.body['text'])
     if match:
-        result = arxiv_information(match.group('id'))
+        result, attachments = arxiv_information(match.group('id'))
         in_thread = bool(message.body.get('thread_ts'))
         if result:
             if in_thread:
-                message.reply(result, in_thread=True)
+                message.reply_webapi(result, attachments=attachments, in_thread=True)
             else:
-                message.send(result)
+                message.send_webapi(result, attachments=attachments)
 
 
 ARXIV_ID = re.compile(r'\[(?P<id>(?:\d{4}\.\d{4,5})|(?:[a-zA-Z.-]+/\d{7}))\]')
@@ -26,13 +26,13 @@ ARXIV_ID = re.compile(r'\[(?P<id>(?:\d{4}\.\d{4,5})|(?:[a-zA-Z.-]+/\d{7}))\]')
 def listen_arxiv2(message):
     match = ARXIV_ID.search(message.body['text'])
     if match:
-        result = arxiv_information(match.group('id'), with_link=True)
+        result, attachments = arxiv_information(match.group('id'))
         in_thread = bool(message.body.get('thread_ts'))
         if result:
             if in_thread:
-                message.reply(result, in_thread=True)
+                message.reply_webapi(result, attachments=attachments, in_thread=True)
             else:
-                message.send(result)
+                message.send_webapi(result, attachments=attachments)
 
 
 UNITS = re.compile(r'^(.+) in (.+)$')
@@ -47,7 +47,7 @@ def listen_units(message):
             message.reply(result, in_thread=True)
 
 
-def arxiv_information(arxiv_id, with_link=False):
+def arxiv_information(arxiv_id):
     cmd = ['heprefs', 'short_info', '-s', arxiv_id]
     try:
         p = subprocess.check_output(cmd, stderr=subprocess.STDOUT).decode().strip().split('\n')
@@ -55,8 +55,9 @@ def arxiv_information(arxiv_id, with_link=False):
         return None
     authors = p[0]
     title = p[1] if len(p) >= 1 else ''
-    url = p[2] if len(p) >= 2 and with_link else ''
-    return f'> [{arxiv_id}] *{authors[0:100]}*\n> {title[0:100]}\n> {url}'.strip()
+    url = p[2] if len(p) >= 2 else ''
+    attachments = None if not url else [{'text': url}]
+    return f'> [{arxiv_id}] *{authors[0:100]}*\n> {title[0:100]}\n>'.strip(), attachments
 
 
 def natural_units(convert, to):
