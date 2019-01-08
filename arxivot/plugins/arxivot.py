@@ -6,7 +6,8 @@ import subprocess
 ARXIV_URL = re.compile(r'https?://arxiv\.org/(?:abs|pdf)/(?P<id>(?:\d{4}\.\d{4,5})|(?:[a-zA-Z.-]+/\d{7}))(?:\.pdf)?')
 
 
-@slackbot.bot.listen_to(r'https?://arxiv\.org/(?:abs|pdf)/(?:(?:\d{4}\.\d{4,5})|(?:[a-zA-Z.-]+/\d{7}))(?:\.pdf)?')
+# @slackbot.bot.listen_to(r'https?://arxiv\.org/(?:abs|pdf)/(?:(?:\d{4}\.\d{4,5})|(?:[a-zA-Z.-]+/\d{7}))(?:\.pdf)?')
+@slackbot.bot.listen_to(r'https?://arxiv\.org/(?:pdf)/(?:(?:\d{4}\.\d{4,5})|(?:[a-zA-Z.-]+/\d{7}))(?:\.pdf)?')
 def listen_arxiv1(message):
     match = ARXIV_URL.search(message.body['text'])
     if match:
