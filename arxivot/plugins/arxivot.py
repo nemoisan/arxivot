@@ -53,7 +53,7 @@ def arxiv_information(arxiv_id):
     try:
         p = subprocess.check_output(cmd, stderr=subprocess.STDOUT).decode().strip().split('\n')
     except:
-        return None
+        return None, None
     authors = p[0]
     title = p[1] if len(p) >= 1 else ''
     url = p[2] if len(p) >= 2 else ''
