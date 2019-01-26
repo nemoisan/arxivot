@@ -24,6 +24,8 @@ if __name__ == '__main__':
     slackbot.settings.API_TOKEN = settings.get('channel', 'API_TOKEN')
     slackbot.settings.DEFAULT_REPLY = settings.get('bot', 'DEFAULT_REPLY')
     slackbot.settings.PLUGINS = [settings.get('bot', 'PLUGIN_DIR')]
+    slackbot.settings.raw_config = settings
+
     print(slackbot.settings.PLUGINS)
     # slackbot.settings.DEBUG = True
     main()

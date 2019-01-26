@@ -1,7 +1,7 @@
 import re
 import slackbot.bot
 import subprocess
-
+import slackbot.settings
 
 ARXIV_URL = re.compile(r'https?://arxiv\.org/(?:abs|pdf)/(?P<id>(?:\d{4}\.\d{4,5})|(?:[a-zA-Z.-]+/\d{7}))(?:\.pdf)?')
 
@@ -21,6 +21,8 @@ def listen_arxiv1(message):
 
 
 ARXIV_ID = re.compile(r'\[(?P<id>(?:\d{4}\.\d{4,5})|(?:[a-zA-Z.-]+/\d{7}))\]')
+BARE_ARXIV_ID = re.compile(r'(?P<id>(?:\d{4}\.\d{4,5})|(?:[a-zA-Z.-]+/\d{7}))')
+CHANNEL = re.compile(r'#(?P<id>\w+)\|(?P<name>[\w-]+)')
 
 
 @slackbot.bot.listen_to(r'\[(?:(?:\d{4}\.\d{4,5})|(?:[a-zA-Z.-]+/\d{7}))\]')
@@ -34,6 +36,45 @@ def listen_arxiv2(message):
                 message.reply_webapi(result, attachments=attachments, in_thread=True)
             else:
                 message.send_webapi(result, attachments=attachments)
+
+
+@slackbot.bot.respond_to(r'\Arec .+\d{4}')
+def listen_recommendation(message):
+    def fail(msg):
+        message.reply(msg, in_thread=False)
+
+    id_match = BARE_ARXIV_ID.search(message.body['text'])
+    if not id_match:
+        fail('arXiv id not recognized.')
+        return
+    result, attachments = arxiv_information(id_match.group('id'))
+    if not result:
+        fail('arXiv article not found.')
+        return
+
+    channel_match = CHANNEL.search(message.body['text'])
+    if channel_match:
+        channel_id, channel_name = channel_match.group('id'), channel_match.group('name')
+    else:
+        try:
+            channel_name = slackbot.settings.raw_config.get('arxivot', 'rec_default_ch')
+            channel_id = [(k, v) for k, v in message._client.channels.items() if v.get('name') == channel_name][0][0]
+        except:   # configparser.NoSectionError or NameError
+            channel_id = channel_name = ''
+
+    channel = message._client.channels.get(channel_id)
+    if not channel:
+        fail('channel "{}" not found'.format(channel_name) if channel_name else 'channel not specified.')
+        return
+    if not channel['is_member']:
+        fail('arXivot not allowed to post #{}.'.format(channel_name))
+        return
+
+    message._client.send_message(
+        channel_id,
+        result,
+        attachments=attachments)
+    fail('ok.')
 
 
 UNITS = re.compile(r'^(.+) in (.+)$')
@@ -75,10 +116,26 @@ def natural_units(convert, to):
 
 @slackbot.bot.respond_to(r'^help$')
 def listen_help(message):
+    message.reply("""*I accept these commands:*
+`X in Y` to do natural-unit conversion
+`rec X` to recommend an arXiv article
+
+`help` to show this help
+`morehelp` to give more help
+""")
+
+
+@slackbot.bot.respond_to(r'^morehelp$')
+def listen_morehelp(message):
     message.reply("""
-Available features:
-    help                this help
-    ... in ...          natural-unit conversion (e.g. "100fm in GeV")
+*in*: natural-unit conversion    
+`100GeV in fm`
+`1pc in m`
+
+*rec*: arXiv article recommendation
+`rec 1901.00001 #fun`
+`rec 1901.00001`
+if channel name is not specified, recommendation is send to default channel.
 """)
 
 
