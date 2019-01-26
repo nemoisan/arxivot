@@ -52,6 +52,9 @@ def listen_recommendation(message):
         fail('arXiv article not found.')
         return
 
+    sender = message.body.get('user')
+    sender_line = ('<@{}>'.format(sender) if sender else 'Someone') + ' recommends:\n'
+
     channel_match = CHANNEL.search(message.body['text'])
     if channel_match:
         channel_id, channel_name = channel_match.group('id'), channel_match.group('name')
@@ -72,7 +75,7 @@ def listen_recommendation(message):
 
     message._client.send_message(
         channel_id,
-        result,
+        sender_line + result,
         attachments=attachments)
     fail('ok.')
 
@@ -135,7 +138,8 @@ def listen_morehelp(message):
 *rec*: arXiv article recommendation
 `rec 1901.00001 #fun`
 `rec 1901.00001`
-if channel name is not specified, recommendation is send to default channel.
+but be careful because you cannot remove the recommendation message!
+If channel name is not specified, recommendation is send to default channel.
 """)
 
 
