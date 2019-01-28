@@ -23,6 +23,7 @@ def listen_arxiv1(message):
 ARXIV_ID = re.compile(r'\[(?P<id>(?:\d{4}\.\d{4,5})|(?:[a-zA-Z.-]+/\d{7}))\]')
 BARE_ARXIV_ID = re.compile(r'(?P<id>(?:\d{4}\.\d{4,5})|(?:[a-zA-Z.-]+/\d{7}))')
 CHANNEL = re.compile(r'#(?P<id>\w+)\|(?P<name>[\w-]+)')
+FAILED_CHANNEL = re.compile(r'\s#(?P<name>[\w-]+)')
 
 
 @slackbot.bot.listen_to(r'\[(?:(?:\d{4}\.\d{4,5})|(?:[a-zA-Z.-]+/\d{7}))\]')
@@ -56,8 +57,12 @@ def listen_recommendation(message):
     sender_line = ('<@{}>'.format(sender) if sender else 'Someone') + ' recommends:\n'
 
     channel_match = CHANNEL.search(message.body['text'])
+    failed_channel_match = FAILED_CHANNEL.search(message.body['text'])
     if channel_match:
         channel_id, channel_name = channel_match.group('id'), channel_match.group('name')
+    elif failed_channel_match:
+        fail('no channel #{} or not allowed to post there.'.format(failed_channel_match.group('name')))
+        return
     else:
         try:
             channel_name = slackbot.settings.raw_config.get('arxivot', 'rec_default_ch')
